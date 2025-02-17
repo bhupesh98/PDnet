@@ -169,7 +169,6 @@ async function promptForDetails(answer) {
 		`;
 
 		const result = await session.run(query);
-		await session.run("MATCH (g:!Gene&!GeneAlias&!Stats) DETACH DELETE g");
 
 		const res = (await session.run("MATCH (g:Gene) RETURN g.ID AS ID")).records.map((record) => record.get("ID"));
 		const diffGenes = res.filter((id) => !geneIDs.has(id));
@@ -180,8 +179,7 @@ async function promptForDetails(answer) {
 		console.log(chalk.green(chalk.bold("[LOG]"), `Deleting ${diffGenes.length} unused nodes...`));
 		
 		const deleteQuery = `
-			UNWIND $geneIDs AS geneID
-			MATCH (g:Gene { ID: geneID }) 
+			MATCH (g:Gene) WHERE g.ID IN $geneIDs 
 			CALL {
 				WITH g
 				DETACH DELETE g
